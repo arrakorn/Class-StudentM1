@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>บทเรียนออนไลน์ - พื้นฐานโปรแกรมตารางงาน</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Sarabun',sans-serif;background:linear-gradient(#bfe6ff,#e8f6ff);min-height:100vh;overflow-x:hidden}
+.cloud{position:fixed;background:#fff;border-radius:99px;opacity:.75;z-index:0;animation:fl linear infinite}
+.cloud:before,.cloud:after{content:"";position:absolute;background:#fff;border-radius:50%}
+.cloud:before{width:50%;height:160%;top:-70%;left:12%}.cloud:after{width:38%;height:120%;top:-45%;right:14%}
+@keyframes fl{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
+.glass{position:relative;overflow:hidden;background:rgba(255,255,255,.72);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.9);border-radius:22px;box-shadow:0 8px 24px rgba(40,90,140,.13);transition:.25s}
+.glass:before{content:"";position:absolute;top:0;left:-80%;width:50%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);transform:skewX(-20deg);animation:shine 5s infinite}
+@keyframes shine{0%,60%{left:-80%}100%{left:140%}}
+.glass:hover,.btn:hover{transform:translateY(-4px);box-shadow:0 14px 28px rgba(40,90,140,.22)}
+.btn{border-radius:16px;padding:.6rem 1.2rem;font-weight:700;color:#fff;box-shadow:0 6px 14px rgba(0,0,0,.15);transition:.2s;cursor:pointer}
+.btn:disabled{opacity:.5;pointer-events:none}
+.nav{display:flex;align-items:center;gap:.6rem;width:100%;text-align:left;padding:.7rem 1rem;border-radius:16px;font-weight:600;transition:.2s;background:#fff8;cursor:pointer}
+.nav:hover{transform:translateX(4px);background:#fff}.nav.on{background:linear-gradient(90deg,#38bdf8,#818cf8);color:#fff}.nav.lock{opacity:.45}
+.opt{display:block;width:100%;text-align:left;padding:.8rem 1rem;margin:.5rem 0;border-radius:14px;background:#fff;border:2px solid #dbeafe;transition:.2s;cursor:pointer}
+.opt:hover{transform:translateY(-3px);border-color:#38bdf8}
+.mt{padding:.8rem;border-radius:14px;background:#fff;border:2px solid #c7d2fe;font-weight:600;cursor:pointer;transition:.2s;text-align:center}
+.mt:hover{transform:translateY(-3px)}.mt.sel{border-color:#f59e0b;background:#fef3c7}.mt.ok{background:#bbf7d0;border-color:#22c55e;pointer-events:none}
+.tab{padding:.5rem 1.2rem;border-radius:14px;font-weight:700;background:#fff9;cursor:pointer}.tab.on{background:#f97316;color:#fff}
+.inp{width:100%;padding:.6rem 1rem;border-radius:14px;border:2px solid #bae6fd;background:#fff;outline:none}.inp:focus{border-color:#38bdf8}
+.spin{width:54px;height:54px;border:6px solid #fff;border-top-color:#38bdf8;border-radius:50%;animation:sp 1s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
+@media print{aside,#lg,.noprint{display:none!important}}
+</style></head>
+<body>
+<div class="cloud" style="top:8%;width:160px;height:50px;animation-duration:60s"></div>
+<div class="cloud" style="top:30%;width:220px;height:64px;animation-duration:85s;animation-delay:-30s"></div>
+<div class="cloud" style="top:62%;width:180px;height:56px;animation-duration:70s;animation-delay:-50s"></div>
+<div id="ov" class="hidden fixed inset-0 z-50 bg-sky-900/50 flex-col items-center justify-center text-white gap-3" style="display:none"><div class="spin"></div><div id="ovt" class="font-bold">กำลังประมวลผล...</div></div>
+
+<!-- LOGIN -->
+<div id="lg" class="relative z-10 max-w-3xl mx-auto p-4 md:p-8">
+ <div class="glass p-8 text-center bg-gradient-to-br from-sky-200/70 to-indigo-200/70">
+  <div class="text-6xl mb-2">📊🐼</div>
+  <h1 class="text-3xl font-bold text-sky-800">บทเรียนออนไลน์</h1>
+  <h2 class="text-xl font-bold text-indigo-700 mt-1">พื้นฐานโปรแกรมตารางงาน</h2>
+  <p class="text-slate-700 mt-1">ระดับชั้นมัธยมศึกษาปีที่ 1 | วิทยาศาสตร์และเทคโนโลยี (คอมพิวเตอร์)</p>
+  <div class="mt-6 max-w-sm mx-auto text-left"><label class="font-semibold">ชื่อ–นามสกุล</label>
+  <input id="nm" class="inp mt-1" placeholder="กรอกชื่อและนามสกุล">
+  <button onclick="login()" class="btn bg-gradient-to-r from-sky-500 to-indigo-500 w-full mt-4">เข้าสู่บทเรียน 🚀</button></div>
+ </div>
+ <div id="lbHome" class="mt-6"></div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden relative z-10 md:flex min-h-screen">
+ <aside class="md:w-64 md:fixed md:h-screen md:overflow-y-auto p-3 bg-white/50 backdrop-blur w-full">
+  <div class="text-center font-bold text-sky-800 mb-2">📊 พื้นฐานโปรแกรมตารางงาน<div class="text-xs font-normal">ม.1 | วิทยาศาสตร์และเทคโนโลยี (คอมพิวเตอร์)</div></div>
+  <div id="menu" class="flex md:block gap-2 overflow-x-auto md:space-y-2 pb-2"></div>
+  <div class="grid grid-cols-2 md:grid-cols-1 gap-2 mt-3 noprint">
+   <button class="btn bg-rose-500" onclick="window.print()">⬇️ ดาวน์โหลด PDF</button>
+   <button class="btn bg-emerald-500" onclick="dlCSV()">⬇️ ดาวน์โหลดชีต (CSV)</button>
+   <button class="btn bg-slate-500 col-span-2 md:col-span-1" onclick="logout()">🚪 ออกจากระบบ</button>
+  </div>
+ </aside>
+ <main class="md:ml-64 flex-1 p-4 md:p-8 min-w-0">
+  <div class="glass p-4 mb-5 bg-gradient-to-r from-sky-200/70 to-violet-200/70">
+   <div class="font-bold text-sky-800">บทเรียนออนไลน์: พื้นฐานโปรแกรมตารางงาน</div>
+   <div class="text-sm text-slate-700">ชั้นมัธยมศึกษาปีที่ 1 | วิทยาศาสตร์และเทคโนโลยี (คอมพิวเตอร์) | ผู้เรียน: <b id="who"></b></div>
+  </div>
+  <section id="v-home" class="v"><div id="lbApp"></div></section>
+  <section id="v-pre" class="v hidden glass p-6 bg-amber-100/70"></section>
+  <section id="v-learn" class="v hidden">
+   <div class="flex gap-2 mb-4"><button class="tab on" onclick="tab(1)">📘 พื้นฐานโปรแกรมตารางงาน</button><button class="tab" onclick="tab(2)">🧮 สูตรโปรแกรมตารางงาน</button></div>
+   <div id="t1" class="glass p-6 bg-gradient-to-br from-green-100/80 to-teal-100/80 space-y-3">
+    <h3 class="text-2xl font-bold text-teal-700">📘 พื้นฐานโปรแกรมตารางงาน</h3>
+    <p>โปรแกรมตารางงาน (Spreadsheet) คือโปรแกรมที่ใช้คำนวณและจัดการข้อมูลเป็นตาราง เช่น Microsoft Excel, Google Sheets 📗</p>
+    <div class="grid sm:grid-cols-2 gap-3">
+     <div class="bg-white/80 rounded-2xl p-4">🗂️ <b>สมุดงาน (Workbook)</b><br>ไฟล์ 1 ไฟล์ ประกอบด้วยหลายแผ่นงาน</div>
+     <div class="bg-white/80 rounded-2xl p-4">📄 <b>แผ่นงาน (Worksheet)</b><br>หน้ากระดาษที่เป็นตารางสำหรับทำงาน</div>
+     <div class="bg-white/80 rounded-2xl p-4">↔️ <b>แถว (Row) และ ↕️ คอลัมน์ (Column)</b><br>แถวเรียงตามแนวนอน (1, 2, 3) คอลัมน์เรียงตามแนวตั้ง (A, B, C)</div>
+     <div class="bg-white/80 rounded-2xl p-4">🔲 <b>เซลล์ (Cell)</b><br>ช่องที่แถวและคอลัมน์ตัดกัน ตั้งชื่อตามคอลัมน์และแถว เช่น B3</div>
+    </div>
+    <p>✅ ประโยชน์: ทำบัญชีรายรับรายจ่าย 💰 คิดคะแนนนักเรียน 🧑‍🎓 สร้างแผนภูมิ 📈</p>
+   </div>
+   <div id="t2" class="hidden glass p-6 bg-gradient-to-br from-orange-100/80 to-pink-100/80 space-y-3">
+    <h3 class="text-2xl font-bold text-orange-600">🧮 สูตรโปรแกรมตารางงาน</h3>
+    <p>สูตรต้องขึ้นต้นด้วยเครื่องหมายเท่ากับ (=) เสมอ เช่น <b>=A1+B1</b> ✍️</p>
+    <div class="grid sm:grid-cols-2 gap-3">
+     <div class="bg-white/80 rounded-2xl p-4">➕ <b>=SUM(A1:A5)</b><br>หาผลรวมของ A1 ถึง A5</div>
+     <div class="bg-white/80 rounded-2xl p-4">⚖️ <b>=AVERAGE(A1:A5)</b><br>หาค่าเฉลี่ย</div>
+     <div class="bg-white/80 rounded-2xl p-4">🔼 <b>=MAX(A1:A5)</b><br>หาค่าสูงสุด</div>
+     <div class="bg-white/80 rounded-2xl p-4">🔽 <b>=MIN(A1:A5)</b><br>หาค่าต่ำสุด</div>
+     <div class="bg-white/80 rounded-2xl p-4">🔢 <b>=COUNT(A1:A5)</b><br>นับจำนวนช่องที่เป็นตัวเลข</div>
+     <div class="bg-white/80 rounded-2xl p-4">✖️➗ <b>=A1*B1 , =A1/B1</b><br>คูณ และ หาร (บวก +, ลบ -)</div>
+    </div>
+    <p class="font-bold">🎬 วิดีโอสื่อการเรียนรู้</p>
+    <div class="max-w-xl"><div style="position:relative;padding-top:56.25%"><iframe style="position:absolute;inset:0;width:100%;height:100%;border-radius:16px" src="https://www.youtube.com/embed/XXo8XMIrMOc?si=HSM7BJgE9Nwygorj" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div></div>
+   </div>
+  </section>
+  <section id="v-post" class="v hidden glass p-6 bg-purple-100/70"></section>
+  <section id="v-game" class="v hidden glass p-6 bg-gradient-to-br from-yellow-100/80 to-lime-100/80">
+   <h3 class="text-2xl font-bold text-lime-700 mb-1">🎮 เกมจับคู่: ฟังก์ชัน กับ หน้าที่</h3>
+   <p class="mb-3">คลิกฟังก์ชันทางซ้าย แล้วคลิกความหมายทางขวาให้ตรงกัน</p>
+   <div class="grid grid-cols-2 gap-3 max-w-xl"><div id="gl" class="space-y-2"></div><div id="gr" class="space-y-2"></div></div>
+   <button class="btn bg-lime-600 mt-4" onclick="game()">🔄 เล่นใหม่</button>
+  </section>
+  <section id="v-score" class="v hidden glass p-6 bg-gradient-to-br from-cyan-100/80 to-blue-100/80"></section>
+  <section id="v-cert" class="v hidden space-y-4">
+   <div class="glass p-6 bg-gradient-to-br from-yellow-100/80 to-orange-100/80" id="certForm"></div>
+   <div class="glass p-6 bg-white/70"><h3 class="font-bold text-lg mb-2">🔍 ค้นหาเกียรติบัตร</h3>
+    <div class="flex gap-2"><input id="cq" class="inp" placeholder="พิมพ์ชื่อหรือ ID"><button class="btn bg-sky-500" onclick="srch()">ค้นหา</button></div>
+    <div id="cres" class="mt-3"></div></div>
+  </section>
+ </main>
+</div>
+
+<template id="lbT"><div class="glass p-5 bg-white/70"><h3 class="font-bold text-lg mb-2">🏆 Leaderboard (เรียงตามคะแนนหลังเรียน)</h3>
+<input id="lq" oninput="renderLB()" class="inp mb-3" placeholder="🔍 ค้นหารายชื่อ...">
+<div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="text-left bg-sky-100"><th class="p-2">อันดับ</th><th>ชื่อ–นามสกุล</th><th>ก่อนเรียน</th><th>หลังเรียน</th><th>พัฒนาการ</th></tr></thead><tbody id="lbb"></tbody></table></div></div></template>
+
+<script>
+const URL_='https://script.google.com/macros/s/AKfycbyNEjXOsHTkxz3LRWhW-GstcTiSZnL0RLrxA6JsoyzZLCc_7dWBXibgU3EyOC0vsUxwig/exec';
+const $=id=>document.getElementById(id);
+const S={name:'',pre:null,post:null,rows:[]};
+const load=(t)=>{$('ovt').textContent=t||'กำลังประมวลผล...';$('ov').style.display='flex'},unload=()=>$('ov').style.display='none';
+async function api(p,post){
+ if(window.google&&google.script&&google.script.run){return new Promise((ok,no)=>google.script.run.withSuccessHandler(ok).withFailureHandler(e=>no(e&&e.message||e)).apiCall(p))}
+ const q=new URLSearchParams(p);const r=post?await fetch(URL_,{method:'POST',body:q}):await fetch(URL_+'?'+q);return r.json()}
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+const level=p=>p>=90?'ดีเยี่ยม 🌟':p>=80?'ดีมาก 😊':p>=70?'ดี 👍':p>=60?'พอใช้ 🙂':'ควรปรับปรุง 💪';
+
+/* menu */
+const M=[['home','🏠','หน้าแรก'],['pre','📝','แบบทดสอบก่อนเรียน'],['learn','📚','เนื้อหาความรู้'],['post','🎯','แบบทดสอบหลังเรียน'],['game','🎮','เกมโต้ตอบ'],['score','📊','คะแนนและพัฒนาการ'],['cert','🏅','เกียรติบัตร']];
+function menu(cur){$('menu').innerHTML=M.map(([k,i,t])=>`<button class="nav shrink-0 ${k==cur?'on':''} ${S.pre===null&&k!='pre'?'lock':''}" onclick="go('${k}')">${i} ${S.pre===null&&k!='pre'?'🔒 ':''}${t}</button>`).join('')}
+function go(k){
+ if(S.pre===null&&k!='pre'){Swal.fire('ยังไม่สามารถเข้าได้','กรุณาทำแบบทดสอบก่อนเรียนให้เสร็จก่อน','warning');k='pre'}
+ if(quiz){clearInterval(quiz.tm);quiz=null}
+ document.querySelectorAll('.v').forEach(e=>e.classList.add('hidden'));$('v-'+k).classList.remove('hidden');menu(k);
+ if(k=='home')mountLB('lbApp');
+ if(k=='pre'||k=='post')intro(k);
+ if(k=='game')game();if(k=='score')score();if(k=='cert')cert();window.scrollTo(0,0)}
+function tab(n){$('t1').classList.toggle('hidden',n!=1);$('t2').classList.toggle('hidden',n!=2);document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',i==n-1))}
+
+/* login/logout */
+function login(){const n=$('nm').value.trim();if(n.split(/\s+/).length<2){return Swal.fire('กรอกข้อมูลไม่ครบ','กรุณากรอกทั้งชื่อและนามสกุล','warning')}
+ S.name=n;S.pre=S.post=null;$('who').textContent=n;$('lg').classList.add('hidden');$('app').classList.remove('hidden');$('app').classList.add('md:flex');go('pre')}
+function logout(){Swal.fire({title:'ออกจากระบบ?',icon:'question',showCancelButton:true,confirmButtonText:'ออกจากระบบ',cancelButtonText:'ยกเลิก'}).then(r=>{if(!r.isConfirmed)return;
+ S.name='';S.pre=S.post=null;$('nm').value='';$('app').classList.add('hidden');$('app').classList.remove('md:flex');$('lg').classList.remove('hidden');mountLB('lbHome')})}
+
+/* leaderboard */
+function mountLB(t){$(t).innerHTML='';$(t).appendChild($('lbT').content.cloneNode(true));$('lbb').innerHTML='<tr><td colspan=5 class="p-4 text-center"><div class="spin mx-auto" style="width:30px;height:30px;border-width:4px"></div></td></tr>';
+ api({action:'leaderboard'}).then(r=>{S.rows=(r.rows||[]).sort((a,b)=>b.post-a.post);renderLB()}).catch(()=>{$('lbb').innerHTML='<tr><td colspan=5 class="p-4 text-center">โหลดข้อมูลไม่ได้</td></tr>'})}
+function renderLB(){const q=($('lq')||{value:''}).value.trim().toLowerCase();const rk=S.rows.map((r,i)=>({...r,rk:i+1})).filter(r=>r.name.toLowerCase().includes(q));
+ $('lbb').innerHTML=rk.length?rk.map(r=>`<tr class="border-b border-sky-100"><td class="p-2 font-bold">${r.rk==1?'🥇':r.rk==2?'🥈':r.rk==3?'🥉':''} ${r.rk}</td><td>${r.name}</td><td>${r.pre}</td><td>${r.post}</td><td>${r.post-r.pre>=0?'+':''}${r.post-r.pre}</td></tr>`).join(''):'<tr><td colspan=5 class="p-4 text-center">ไม่พบข้อมูลที่ค้นหา</td></tr>'}
+function dlCSV(){if(!S.rows.length)return Swal.fire('ยังไม่มีข้อมูล','เปิดหน้าแรกเพื่อโหลดข้อมูลตารางคะแนนก่อน','info');
+ const c='\uFEFFอันดับ,ชื่อ-นามสกุล,ก่อนเรียน,หลังเรียน,พัฒนาการ\n'+S.rows.map((r,i)=>[i+1,'"'+r.name+'"',r.pre,r.post,r.post-r.pre].join(',')).join('\n');
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download='คะแนน.csv';a.click()}
+
+/* quiz */
+const Q=[['โปรแกรมใดคือโปรแกรมตารางงาน?','Microsoft Excel','Microsoft Word','PowerPoint','Paint'],
+['ช่องที่เกิดจากแถวและคอลัมน์ตัดกันเรียกว่าอะไร?','เซลล์','สมุดงาน','แผนภูมิ','สไลด์'],
+['เซลล์ที่อยู่คอลัมน์ B แถวที่ 3 มีชื่อว่าอะไร?','B3','3B','B-3','C2'],
+['สูตรในโปรแกรมตารางงานต้องขึ้นต้นด้วยเครื่องหมายใด?','=','#','@','$'],
+['สูตรหาผลรวมของ A1 ถึง A5 คือข้อใด?','=SUM(A1:A5)','=AVERAGE(A1:A5)','=COUNT(A1)','=MAX(A1)'],
+['ฟังก์ชันที่ใช้หาค่าเฉลี่ยคือข้อใด?','AVERAGE','SUM','MIN','COUNT'],
+['ฟังก์ชันที่ใช้หาค่าสูงสุดคือข้อใด?','MAX','MIN','SUM','IF'],
+['สูตร =A1*B1 หมายถึงอะไร?','นำค่า A1 คูณกับ B1','นำค่า A1 บวกกับ B1','นำค่า A1 หารด้วย B1','นำค่า A1 ลบด้วย B1'],
+['ไฟล์โปรแกรมตารางงาน 1 ไฟล์ เรียกว่าอะไร?','สมุดงาน (Workbook)','เซลล์','แถว','สูตร'],
+['ถ้า A1=10 และ A2=20 สูตร =SUM(A1:A2) ได้ผลลัพธ์เท่าใด?','30','10','20','200']];
+let quiz=null;
+function intro(k){const done=S[k]!==null;$('v-'+k).innerHTML=`<h3 class="text-2xl font-bold mb-2">${k=='pre'?'📝 แบบทดสอบก่อนเรียน':'🎯 แบบทดสอบหลังเรียน'}</h3><p>10 ข้อ ตัวเลือกเดียว ทำทีละข้อ ข้อละ 60 วินาที</p>${done?`<p class="mt-3 font-bold">คะแนนที่ทำได้: ${S[k]}/10 ✅</p>`:''}<button class="btn bg-gradient-to-r from-orange-400 to-pink-500 mt-4" onclick="startQuiz('${k}')">${done?'ทำอีกครั้ง':'เริ่มทำแบบทดสอบ'} ▶️</button>`}
+function startQuiz(k){const rot=(a,n)=>a.slice(n).concat(a.slice(0,n));
+ quiz={k,i:0,sc:0,t:60,tm:null,items:Q.map((x,i)=>{let o=x.slice(1).map((t,j)=>({t,c:!j}));o=k=='pre'?rot(o,i%4):shuf(o);return{q:x[0],o}})};rq()}
+function rq(){const it=quiz.items[quiz.i];quiz.t=60;clearInterval(quiz.tm);
+ $('v-'+quiz.k).innerHTML=`<div class="flex justify-between font-bold mb-2"><span>ข้อ ${quiz.i+1}/10</span><span id="tm" class="text-rose-600">⏱️ 60</span></div><div class="h-2 bg-white rounded mb-4"><div class="h-2 bg-sky-500 rounded" style="width:${quiz.i*10}%"></div></div><p class="text-lg font-semibold mb-2">${it.q}</p>${it.o.map((o,j)=>`<button class="opt" onclick="ans(${j})">${'ก ข ค ง'.split(' ')[j]}. ${o.t}</button>`).join('')}`;
+ quiz.tm=setInterval(()=>{quiz.t--;$('tm').textContent='⏱️ '+quiz.t;if(quiz.t<=0)ans(-1)},1000)}
+function ans(j){const it=quiz.items[quiz.i];if(j>=0&&it.o[j].c)quiz.sc++;clearInterval(quiz.tm);if(++quiz.i<10)rq();else fin()}
+async function fin(){const k=quiz.k,sc=quiz.sc;quiz=null;S[k]=sc;intro(k);menu(k);
+ load('กำลังบันทึกคะแนน...');
+ try{await api({action:'saveScore',name:S.name,pre:S.pre??'',post:S.post??''},true);unload();Swal.fire('บันทึกคะแนนสำเร็จ 🎉',`คุณได้ ${sc}/10 คะแนน`,'success')}
+ catch(e){unload();Swal.fire('บันทึกไม่สำเร็จ','ตรวจสอบการเชื่อมต่อ Apps Script แล้วลองใหม่','error')}}
+
+/* game */
+const P=[['SUM','หาผลรวม'],['AVERAGE','หาค่าเฉลี่ย'],['MAX','หาค่าสูงสุด'],['MIN','หาค่าต่ำสุด'],['COUNT','นับจำนวนช่องที่เป็นตัวเลข']];let sel=null,ok=0;
+function game(){sel=null;ok=0;$('gl').innerHTML=shuf(P).map(p=>`<div class="mt" data-k="${p[0]}" onclick="pick(this,'l')">${p[0]}</div>`).join('');$('gr').innerHTML=shuf(P).map(p=>`<div class="mt" data-k="${p[0]}" onclick="pick(this,'r')">${p[1]}</div>`).join('')}
+function pick(el,s){if(el.classList.contains('ok'))return;if(!sel||sel.s==s){document.querySelectorAll('.mt.sel').forEach(e=>{if(e.parentNode==el.parentNode)e.classList.remove('sel')});el.classList.add('sel');sel={el,s};return}
+ if(sel.el.dataset.k==el.dataset.k){sel.el.className=el.className='mt ok';sel=null;if(++ok==5)Swal.fire('เก่งมาก! 🎉','จับคู่ถูกทั้งหมดแล้ว','success')}
+ else{sel.el.classList.remove('sel');sel=null;Swal.fire({title:'ยังไม่ถูก ลองใหม่นะ 😅',icon:'error',timer:900,showConfirmButton:false})}}
+
+/* score */
+function score(){const a=S.pre,b=S.post,d=b===null?null:b-a;
+ $('v-score').innerHTML=`<h3 class="text-2xl font-bold mb-3">📊 คะแนนและพัฒนาการ</h3><div class="grid sm:grid-cols-3 gap-3 text-center"><div class="bg-white/80 rounded-2xl p-4">ก่อนเรียน<div class="text-3xl font-bold text-orange-500">${a}/10</div>${a*10}%</div><div class="bg-white/80 rounded-2xl p-4">หลังเรียน<div class="text-3xl font-bold text-emerald-600">${b===null?'-':b+'/10'}</div>${b===null?'ยังไม่ได้ทำ':b*10+'%'}</div><div class="bg-white/80 rounded-2xl p-4">พัฒนาการ<div class="text-3xl font-bold text-indigo-600">${d===null?'-':(d>=0?'+':'')+d}</div>${d===null?'':d>0?'📈 ดีขึ้น':d==0?'➖ เท่าเดิม':'📉 ลดลง'}</div></div>
+ ${b===null?'':`<p class="mt-4 text-lg">ระดับคุณภาพ: <b>${level(b*10)}</b></p>`}<button class="btn bg-sky-500 mt-4" onclick="saveDev()">💾 บันทึกผลลงชีต</button>`}
+async function saveDev(){load('กำลังบันทึก...');try{await api({action:'saveScore',name:S.name,pre:S.pre??'',post:S.post??''},true);unload();Swal.fire('บันทึกสำเร็จ','','success')}catch(e){unload();Swal.fire('ผิดพลาด','บันทึกไม่สำเร็จ','error')}}
+
+/* certificate */
+async function cert(){const f=$('certForm');
+ if(S.post===null||S.post*10<=80){f.innerHTML=`<h3 class="text-2xl font-bold mb-2">🏅 เกียรติบัตร</h3><p>ต้องได้คะแนนแบบทดสอบหลังเรียนมากกว่า 80% จึงจะรับเกียรติบัตรได้ ${S.post===null?'(ยังไม่ได้ทำแบบทดสอบหลังเรียน)':'(คะแนนของคุณ '+S.post*10+'%)'}</p>`;return}
+ f.innerHTML='<div class="spin mx-auto"></div>';let id='---';try{id=(await api({action:'nextId'})).id}catch(e){}
+ f.innerHTML=`<h3 class="text-2xl font-bold mb-3">🏅 กรอกข้อมูลเพื่อสร้างเกียรติบัตร</h3><div class="grid sm:grid-cols-2 gap-3">
+ <div><label>IDเกียรติบัตร (สร้างอัตโนมัติ)</label><input id="cid" class="inp" readonly value="${id}"></div>
+ <div><label>ชื่อผู้รับ</label><input id="cn" class="inp" value="${S.name}"></div>
+ <div><label>ตำแหน่ง</label><input id="cp" class="inp" value="นักเรียนชั้นมัธยมศึกษาปีที่ 1"></div>
+ <div><label>ประทับเวลา</label><input id="ct" class="inp" readonly value="${new Date().toLocaleString('th-TH')}"></div></div>
+ <button class="btn bg-orange-500 mt-4" onclick="mk()">💾 บันทึกข้อมูลและสร้างเกียรติบัตร</button><div id="dl" class="mt-4"></div>`}
+async function mk(){const n=$('cn').value.trim(),p=$('cp').value.trim();if(!n||!p)return Swal.fire('กรอกข้อมูลไม่ครบ','','warning');
+ load('กำลังสร้างเกียรติบัตร โปรดรอสักครู่...');
+ try{const r=await api({action:'createCert',name:n,position:p,ts:$('ct').value},true);unload();if(!r.ok)throw r.msg;
+  $('cid').value=r.id;$('dl').innerHTML=`<div class="text-emerald-700 font-bold mb-2">✅ บันทึกสำเร็จ (ID ${r.id})</div><button class="btn bg-emerald-500" onclick="window.open('https://drive.google.com/file/d/${r.fileId}/view','_blank')">⬇️ ดาวน์โหลดเกียรติบัตร</button>`;
+  Swal.fire('สร้างเกียรติบัตรสำเร็จ 🎓','','success')}catch(e){unload();Swal.fire('สร้างไม่สำเร็จ',String(e),'error')}}
+async function srch(){const q=$('cq').value.trim();if(!q)return;$('cres').innerHTML='<div class="spin mx-auto" style="width:34px;height:34px;border-width:4px"></div>';
+ try{const r=await api({action:'searchCert',q});$('cres').innerHTML=r.rows.length?r.rows.map(x=>`<div class="flex flex-wrap justify-between items-center gap-2 bg-white rounded-2xl p-3 mb-2"><span>#${x.id} ${x.name} (${x.position})</span><button class="btn bg-emerald-500" onclick="window.open('https://drive.google.com/file/d/${x.fileId}/view','_blank')">ดาวน์โหลดเกียรติบัตร</button></div>`).join(''):'<p class="text-center">ไม่พบข้อมูลที่ค้นหา</p>'}
+ catch(e){$('cres').innerHTML='<p class="text-center">ไม่พบข้อมูลที่ค้นหา</p>'}}
+mountLB('lbHome');
+</script>
+<footer class="relative z-10 text-center text-sm text-slate-600 p-4">© 2026 Copyright | พัฒนาโดย นายอารกร ชินภักดี</footer>
+</body></html>
